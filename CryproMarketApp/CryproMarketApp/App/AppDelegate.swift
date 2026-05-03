@@ -18,11 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
 
         window = UIWindow(frame: UIScreen.main.bounds)
-
-        let rootVC = CryptoListViewController()
-        let navigationController = UINavigationController(rootViewController: rootVC)
-
-        window?.rootViewController = navigationController
+        window?.rootViewController = MainTabbarController()
         window?.makeKeyAndVisible()
 
         return true

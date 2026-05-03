@@ -10,8 +10,9 @@ import UIKit
 final class CryptoDetailsViewController: UIViewController {
 
     private let viewModel: CryptoDetailsViewModel
-    private var isFavorite = false
-
+    private var isFavorite: Bool {
+        FavoritesService.shared.isFavorite(id: viewModel.coin.id)
+    }
     private let coinImageView = UIImageView()
     private let nameLabel = UILabel()
     private let symbolLabel = UILabel()
@@ -70,7 +71,7 @@ final class CryptoDetailsViewController: UIViewController {
         title = viewModel.title
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "heart"),
+            image: UIImage(systemName: isFavorite ? "heart.fill" : "heart"),
             style: .plain,
             target: self,
             action: #selector(favoriteButtonTapped)
@@ -136,12 +137,12 @@ final class CryptoDetailsViewController: UIViewController {
             self?.coinImageView.image = image ?? UIImage(systemName: "bitcoinsign.circle.fill")
         }
     }
-
     @objc private func favoriteButtonTapped() {
-        isFavorite.toggle()
+        FavoritesService.shared.toggleFavorite(id: viewModel.coin.id)
 
         let imageName = isFavorite ? "heart.fill" : "heart"
-
         navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
+
+        print("FAVORITES:", FavoritesService.shared.getFavoriteIDs())
     }
 }
