@@ -9,10 +9,10 @@ import Foundation
 
 struct Coin: Decodable {
     let id: String
-    let symbole: String
+    let symbol: String
     let name: String
     let image: String
     let currentPrice: Double
-    let priceChangePercentage24H: Double
+    let priceChangePercentage24h: Double?
     let marketCap: Double?
 }
