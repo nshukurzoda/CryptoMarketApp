@@ -106,16 +106,36 @@ extension CryptoListViewController: UITableViewDataSource {
 }
 
 // MARK: - UITableViewDelegate
-    
 extension CryptoListViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
         tableView.deselectRow(at: indexPath, animated: true)
 
         let coin = viewModel.coin(at: indexPath.row)
-        let detailsViewModel = CryptoDetailsViewModel(coin: coin)
-        let detailsViewController = CryptoDetailsViewController(viewModel: detailsViewModel)
 
-        navigationController?.pushViewController(detailsViewController, animated: true)
+        let detailsViewModel = CryptoDetailsViewModel(coin: coin)
+
+        let detailsViewController = CryptoDetailsViewController(
+            viewModel: detailsViewModel
+        )
+
+        navigationController?.pushViewController(
+            detailsViewController,
+            animated: true
+        )
+    }
+
+    func tableView(
+        _ tableView: UITableView,
+        willDisplay cell: UITableViewCell,
+        forRowAt indexPath: IndexPath
+    ) {
+
+        let lastRow = viewModel.numberOfCoins - 5
+
+        if indexPath.row == lastRow {
+            viewModel.loadNextPage()
+        }
     }
 }

@@ -9,28 +9,77 @@
     private let networkService = NetworkService()
 
     private(set) var coins: [Coin] = []
+     
+     private var currentPage = 1
+     private var isLoading = false
+     private var hasMoreData = true
 
     var onCoinsUpdated: (() -> Void)?
     var onError: ((String) -> Void)?
 
-    func loadCoins() {
-        Task {
-            do {
-                let fetchedCoins = try await networkService.fetchCoins(page: 1)
-                self.coins = fetchedCoins
+     func loadCoins() {
 
-                await MainActor.run {
-                    self.onCoinsUpdated?()
-                }
-            } catch {
-                print("REAL NETWORK ERROR:", error)
+         currentPage = 1
+         hasMoreData = true
 
-                await MainActor.run {
-                    self.onError?("Failed to load coins: \(error)")
-                }
-            }
-        }
-    }
+         Task {
+
+             do {
+
+                 let fetchedCoins = try await networkService.fetchCoins(page: currentPage)
+
+                 self.coins = fetchedCoins
+
+                 await MainActor.run {
+                     self.onCoinsUpdated?()
+                 }
+
+             } catch {
+
+                 await MainActor.run {
+                     self.onError?("Failed to load coins: \(error)")
+                 }
+             }
+         }
+     }
+     
+     func loadNextPage() {
+
+         guard !isLoading else { return }
+         guard hasMoreData else { return }
+
+         isLoading = true
+
+         currentPage += 1
+
+         Task {
+
+             do {
+
+                 let newCoins = try await networkService.fetchCoins(page: currentPage)
+
+                 if newCoins.isEmpty {
+                     hasMoreData = false
+                 }
+
+                 self.coins.append(contentsOf: newCoins)
+
+                 isLoading = false
+
+                 await MainActor.run {
+                     self.onCoinsUpdated?()
+                 }
+
+             } catch {
+
+                 isLoading = false
+
+                 await MainActor.run {
+                     self.onError?("Failed to load more coins: \(error)")
+                 }
+             }
+         }
+     }
 
     func coin(at index: Int) -> Coin {
         coins[index]
