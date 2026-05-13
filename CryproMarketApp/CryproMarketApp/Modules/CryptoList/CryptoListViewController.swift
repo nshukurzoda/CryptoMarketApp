@@ -10,6 +10,7 @@ final class CryptoListViewController: UIViewController {
 
     private let tableView = UITableView()
     private let viewModel = CryptoListViewModel()
+    private let refreshControl = UIRefreshControl()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,6 +18,7 @@ final class CryptoListViewController: UIViewController {
         setupUI()
         setupTableView()
         bindViewModel()
+        setupRefreshControl()
 
         viewModel.loadCoins()
     }
@@ -46,14 +48,37 @@ final class CryptoListViewController: UIViewController {
     }
 
     private func bindViewModel() {
-        viewModel.onCoinsUpdated = { [weak self] in
-            self?.tableView.reloadData()
+        viewModel.onCoinsUpdated = { [weak self]  in
+            
+            DispatchQueue.main.async {
+                
+                self?.tableView.reloadData()
+                self?.refreshControl.endRefreshing()
+            }
         }
 
-        viewModel.onError = { errorMessage in
-            print(errorMessage)
-        }
+            viewModel.onError = { errorMessage in
+                print(errorMessage)
+            }
+        
+       
     }
+    
+    private func setupRefreshControl() {
+
+        tableView.refreshControl = refreshControl
+
+        refreshControl.addTarget(
+            self,
+            action: #selector(refreshData),
+            for: .valueChanged
+        )
+    }
+    
+    @objc private func refreshData() {
+        viewModel.loadCoins()
+    }
+    
 }
 
 // MARK: - UITableViewDataSource
