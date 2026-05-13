@@ -4,15 +4,16 @@
 //
 //  Created by Nodira Shukurova on 03/05/26.
 //
-
 import UIKit
 
 final class CryptoDetailsViewController: UIViewController {
 
-    private let viewModel: CryptoDetailsViewModel
+    private let coin: Coin
+
     private var isFavorite: Bool {
-        FavoritesService.shared.isFavorite(id: viewModel.coin.id)
+        FavoritesService.shared.isFavorite(id: coin.id)
     }
+
     private let coinImageView = UIImageView()
     private let nameLabel = UILabel()
     private let symbolLabel = UILabel()
@@ -21,8 +22,8 @@ final class CryptoDetailsViewController: UIViewController {
     private let marketCapTitleLabel = UILabel()
     private let marketCapValueLabel = UILabel()
 
-    init(viewModel: CryptoDetailsViewModel) {
-        self.viewModel = viewModel
+    init(coin: Coin) {
+        self.coin = coin
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -68,7 +69,7 @@ final class CryptoDetailsViewController: UIViewController {
     }
 
     private func setupNavigationBar() {
-        title = viewModel.title
+        title = coin.name
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: isFavorite ? "heart.fill" : "heart"),
@@ -81,13 +82,17 @@ final class CryptoDetailsViewController: UIViewController {
     }
 
     private func setupLayout() {
-        [coinImageView,
-         nameLabel,
-         symbolLabel,
-         priceLabel,
-         changeLabel,
-         marketCapTitleLabel,
-         marketCapValueLabel].forEach {
+        let views = [
+            coinImageView,
+            nameLabel,
+            symbolLabel,
+            priceLabel,
+            changeLabel,
+            marketCapTitleLabel,
+            marketCapValueLabel
+        ]
+
+        views.forEach {
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -124,24 +129,37 @@ final class CryptoDetailsViewController: UIViewController {
     }
 
     private func configure() {
-        nameLabel.text = viewModel.title
-        symbolLabel.text = viewModel.symbol
-        priceLabel.text = viewModel.priceText
-        changeLabel.text = viewModel.changeText
-        changeLabel.textColor = viewModel.isChangePositive ? .systemGreen : .systemRed
-        marketCapValueLabel.text = viewModel.marketCapText
+        nameLabel.text = coin.name
+        symbolLabel.text = coin.symbol.uppercased()
+        priceLabel.text = "$\(coin.currentPrice)"
+
+        if let change = coin.priceChangePercentage24h {
+            changeLabel.text = String(format: "%.2f%%", change)
+            changeLabel.textColor = change >= 0 ? .systemGreen : .systemRed
+        } else {
+            changeLabel.text = "—"
+        }
+
+        if let marketCap = coin.marketCap {
+            marketCapValueLabel.text = "$\(marketCap)"
+        } else {
+            marketCapValueLabel.text = "—"
+        }
 
         coinImageView.image = UIImage(systemName: "bitcoinsign.circle.fill")
 
-        ImageLoader.shared.loadImage(from: viewModel.imageURL) { [weak self] image in
+        ImageLoader.shared.loadImage(from: coin.image) { [weak self] image in
             self?.coinImageView.image = image ?? UIImage(systemName: "bitcoinsign.circle.fill")
         }
     }
-    @objc private func favoriteButtonTapped() {
-        FavoritesService.shared.toggleFavorite(id: viewModel.coin.id)
 
-        let imageName = isFavorite ? "heart.fill" : "heart"
-        navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
+    @objc private func favoriteButtonTapped() {
+        FavoritesService.shared.toggleFavorite(id: coin.id)
+
+        let isFav = FavoritesService.shared.isFavorite(id: coin.id)
+
+        navigationItem.rightBarButtonItem?.image =
+            UIImage(systemName: isFav ? "heart.fill" : "heart")
 
         print("FAVORITES:", FavoritesService.shared.getFavoriteIDs())
     }

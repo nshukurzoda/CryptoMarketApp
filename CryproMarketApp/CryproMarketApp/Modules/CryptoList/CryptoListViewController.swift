@@ -48,10 +48,8 @@ final class CryptoListViewController: UIViewController {
     }
 
     private func bindViewModel() {
-        viewModel.onCoinsUpdated = { [weak self]  in
-            
-            DispatchQueue.main.async {
-                
+        viewModel.onCoinsUpdated = { [weak self] in
+            Task { @MainActor in
                 self?.tableView.reloadData()
                 self?.refreshControl.endRefreshing()
             }
@@ -114,11 +112,7 @@ extension CryptoListViewController: UITableViewDelegate {
 
         let coin = viewModel.coin(at: indexPath.row)
 
-        let detailsViewModel = CryptoDetailsViewModel(coin: coin)
-
-        let detailsViewController = CryptoDetailsViewController(
-            viewModel: detailsViewModel
-        )
+        let detailsViewController = CryptoDetailsViewController(coin: coin)
 
         navigationController?.pushViewController(
             detailsViewController,

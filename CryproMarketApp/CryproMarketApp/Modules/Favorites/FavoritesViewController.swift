@@ -111,12 +111,16 @@ extension FavoritesViewController: UITableViewDataSource {
 extension FavoritesViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
         tableView.deselectRow(at: indexPath, animated: true)
 
         let coin = viewModel.coin(at: indexPath.row)
-        let detailsVM = CryptoDetailsViewModel(coin: coin)
-        let detailsVC = CryptoDetailsViewController(viewModel: detailsVM)
 
-        navigationController?.pushViewController(detailsVC, animated: true)
+        let detailsViewController = CryptoDetailsViewController(coin: coin)
+
+        navigationController?.pushViewController(
+            detailsViewController,
+            animated: true
+        )
     }
 }
